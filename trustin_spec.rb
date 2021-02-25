@@ -67,5 +67,19 @@ RSpec.describe TrustIn do
         end
       end
     end
+
+    context "When the evaluation type is VAT" do
+      context "When the durability is equal or greater than 50 and the state is unconfirmed because the api is unreachable" do
+        it 'should decrease the evaluation durability by 1' do
+
+        end
+      end
+
+      context "When the durability is lower than 50 and the state is unconfirmed because the api is unreachable" do
+        it 'should decrease the evaluation durability by 3' do
+
+        end
+      end
+    end
   end
 end
