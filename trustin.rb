@@ -12,7 +12,8 @@ CONSTANTS = {
     unfavorable: 'unfavorable'
   },
   evaluation_reasons: {
-    unable_to_reach_api: 'unable_to_reach_api'
+    unable_to_reach_api: 'unable_to_reach_api',
+    ongoing_database_update: 'ongoing_database_update'
   }
 }
 
@@ -97,7 +98,7 @@ class TrustIn
   def check_vat(evaluation)
     state, durability, reason = [evaluation.state, evaluation.durability, evaluation.reason]
 
-    return evaluation if durability == 0
+    return run_vat_evaluation(evaluation) if durability == 0
     return evaluation if state == CONSTANTS[:evaluation_states][:unfavorable]
 
     if durability >= 50
@@ -114,7 +115,22 @@ class TrustIn
       if state == CONSTANTS[:evaluation_states][:favorable]
         evaluation.durability -= 1
       end
+      if state == CONSTANTS[:evaluation_states][:unconfirmed] && reason == CONSTANTS[:evaluation_reasons][:ongoing_database_update]
+        run_vat_evaluation(evaluation)
+      end
     end
+  end
+
+  def run_vat_evaluation(evaluation)
+    data = [
+      { state: "favorable", reason: "company_opened" },
+      { state: "unfavorable", reason: "company_closed" },
+      { state: "unconfirmed", reason: "unable_to_reach_api" },
+      { state: "unconfirmed", reason: "ongoing_database_update" },
+    ].sample
+    evaluation.state = data[:state]
+    evaluation.reason = data[:reason]
+    evaluation.durability = 100
   end
 end
 

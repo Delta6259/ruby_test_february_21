@@ -104,8 +104,8 @@ RSpec.describe TrustIn do
       context 'When the durability is set to 0' do
         let(:evaluations) { [Evaluation.new(type: "VAT", value: "IE6388047V", durability: 0, state: "unfavorable", reason: "ongoing_database_update")] }
 
-        it 'should durability equals to 0' do
-          expect(evaluations.first.durability).to eq(0)
+        it 'should durability equals to 100 because of new evaluation' do
+          expect(evaluations.first.durability).to eq(100)
         end
       end
     end
