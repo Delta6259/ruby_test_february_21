@@ -38,7 +38,10 @@ class TrustIn
   private
 
   def check_siren(evaluation)
-    if evaluation.durability > 0 && evaluation.state == "unconfirmed" && evaluation.reason == "ongoing_database_update"
+    if evaluation.durability > 0 &&
+      evaluation.state == CONSTANTS[:evaluation_states][:unconfirmed] &&
+      evaluation.reason == CONSTANTS[:evaluation_reasons][:ongoing_database_update]
+
       parsed_response = call_open_data_soft(evaluation)
       company_state = parsed_response["records"].first["fields"]["etatadministratifetablissement"]
       if company_state == "Actif"
@@ -51,25 +54,28 @@ class TrustIn
         evaluation.durability = 100
       end
     elsif evaluation.durability >= 50
-      unless evaluation.state == "unfavorable"
-        if evaluation.state == "unconfirmed" && evaluation.reason == "unable_to_reach_api"
+      unless evaluation.state == CONSTANTS[:evaluation_states][:unfavorable]
+        if CONSTANTS[:evaluation_states][:unconfirmed] && CONSTANTS[:evaluation_reasons][:unable_to_reach_api]
           if evaluation.durability > 0
             evaluation.durability = evaluation.durability - 5
           end
-        elsif evaluation.state == "favorable"
+        elsif evaluation.state == CONSTANTS[:evaluation_states][:favorable]
           if evaluation.durability > 0
             evaluation.durability = evaluation.durability - 1
           end
         end
       end
     elsif evaluation.durability <= 50 && evaluation.durability > 0
-      if evaluation.state == "unconfirmed" && evaluation.reason == "unable_to_reach_api" || evaluation.state == "favorable"
+      if evaluation.state == CONSTANTS[:evaluation_states][:unconfirmed] &&
+        evaluation.reason == CONSTANTS[:evaluation_reasons][:unable_to_reach_api] ||
+        evaluation.state == CONSTANTS[:evaluation_states][:favorable]
+
         if evaluation.durability > 0
           evaluation.durability = evaluation.durability - 1
         end
       end
     else
-      if evaluation.state == "favorable" || evaluation.state == "unconfirmed"
+      if evaluation.state == CONSTANTS[:evaluation_states][:favorable] || evaluation.state == CONSTANTS[:evaluation_states][:unconfirmed]
         parsed_response = call_open_data_soft(evaluation)
         company_state = parsed_response["records"].first["fields"]["etatadministratifetablissement"]
         if company_state == "Actif"
