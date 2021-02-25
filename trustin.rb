@@ -24,8 +24,6 @@ class TrustIn
 
   def update_durability()
     @evaluations.each do |evaluation|
-      # Must be a switch case statement.
-
       case evaluation.type
       when CONSTANTS[:evaluation_types][:siren]
         check_siren(evaluation)
@@ -41,11 +39,7 @@ class TrustIn
 
   def check_siren(evaluation)
     if evaluation.durability > 0 && evaluation.state == "unconfirmed" && evaluation.reason == "ongoing_database_update"
-      uri = URI("https://public.opendatasoft.com/api/records/1.0/search/?dataset=sirene_v3" \
-            "&q=#{evaluation.value}&sort=datederniertraitementetablissement" \
-            "&refine.etablissementsiege=oui")
-      response = Net::HTTP.get(uri)
-      parsed_response = JSON.parse(response)
+      parsed_response = call_open_data_soft(evaluation)
       company_state = parsed_response["records"].first["fields"]["etatadministratifetablissement"]
       if company_state == "Actif"
         evaluation.state = "favorable"
@@ -76,11 +70,7 @@ class TrustIn
       end
     else
       if evaluation.state == "favorable" || evaluation.state == "unconfirmed"
-        uri = URI("https://public.opendatasoft.com/api/records/1.0/search/?dataset=sirene_v3" \
-                      "&q=#{evaluation.value}&sort=datederniertraitementetablissement" \
-                      "&refine.etablissementsiege=oui")
-        response = Net::HTTP.get(uri)
-        parsed_response = JSON.parse(response)
+        parsed_response = call_open_data_soft(evaluation)
         company_state = parsed_response["records"].first["fields"]["etatadministratifetablissement"]
         if company_state == "Actif"
           evaluation.state = "favorable"
@@ -93,6 +83,14 @@ class TrustIn
         end
       end
     end
+  end
+
+  def call_open_data_soft(evaluation)
+    uri = URI("https://public.opendatasoft.com/api/records/1.0/search/?dataset=sirene_v3" \
+            "&q=#{evaluation.value}&sort=datederniertraitementetablissement" \
+            "&refine.etablissementsiege=oui")
+    response = Net::HTTP.get(uri)
+    JSON.parse(response)
   end
 
   def check_vat(evaluation)
