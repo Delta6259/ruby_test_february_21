@@ -70,14 +70,42 @@ RSpec.describe TrustIn do
 
     context "When the evaluation type is VAT" do
       context "When the durability is equal or greater than 50 and the state is unconfirmed because the api is unreachable" do
-        it 'should decrease the evaluation durability by 1' do
+        let(:evaluations) { [Evaluation.new(type: "VAT", value: "IE6388047V", durability: 79, state: "unconfirmed", reason: "unable_to_reach_api")] }
 
+        it 'should decrease the evaluation durability by 1' do
+          expect(evaluations.first.durability).to eq(78)
         end
       end
 
       context "When the durability is lower than 50 and the state is unconfirmed because the api is unreachable" do
-        it 'should decrease the evaluation durability by 3' do
+        let(:evaluations) { [Evaluation.new(type: "VAT", value: "IE6388047V", durability: 40, state: "unconfirmed", reason: "unable_to_reach_api")] }
 
+        it 'should decrease the evaluation durability by 3' do
+          expect(evaluations.first.durability).to eq(37)
+        end
+      end
+
+      context "When the durability is greater than 0 and the state is favorable" do
+        let(:evaluations) { [Evaluation.new(type: "VAT", value: "IE6388047V", durability: 22, state: "favorable", reason: "ongoing_database_update")] }
+
+        it 'should evaluation decrease of 1 point' do
+          expect(evaluations.first.durability).to eq(21)
+        end
+      end
+
+      context 'When the state is unfavorable' do
+        let(:evaluations) { [Evaluation.new(type: "VAT", value: "IE6388047V", durability: 22, state: "unfavorable", reason: "ongoing_database_update")] }
+
+        it 'should not decrease the durability' do
+          expect(evaluations.first.durability).to eq(22)
+        end
+      end
+
+      context 'When the durability is set to 0' do
+        let(:evaluations) { [Evaluation.new(type: "VAT", value: "IE6388047V", durability: 0, state: "unfavorable", reason: "ongoing_database_update")] }
+
+        it 'should durability equals to 0' do
+          expect(evaluations.first.durability).to eq(0)
         end
       end
     end

@@ -5,6 +5,14 @@ CONSTANTS = {
   evaluation_types: {
     siren: 'SIREN',
     vat: 'VAT'
+  },
+  evaluation_states: {
+    unconfirmed: 'unconfirmed',
+    favorable: 'favorable',
+    unfavorable: 'unfavorable'
+  },
+  evaluation_reasons: {
+    unable_to_reach_api: 'unable_to_reach_api'
   }
 }
 
@@ -86,7 +94,28 @@ class TrustIn
     end
   end
 
-  def check_vat(evaluation) end
+  def check_vat(evaluation)
+    state, durability, reason = [evaluation.state, evaluation.durability, evaluation.reason]
+
+    return evaluation if durability == 0
+    return evaluation if state == CONSTANTS[:evaluation_states][:unfavorable]
+
+    if durability >= 50
+      if state == CONSTANTS[:evaluation_states][:unconfirmed] && reason == CONSTANTS[:evaluation_reasons][:unable_to_reach_api]
+        evaluation.durability -= 1
+      end
+    else
+      if state == CONSTANTS[:evaluation_states][:unconfirmed] && reason == CONSTANTS[:evaluation_reasons][:unable_to_reach_api]
+        evaluation.durability -= 3
+      end
+    end
+
+    if durability > 0
+      if state == CONSTANTS[:evaluation_states][:favorable]
+        evaluation.durability -= 1
+      end
+    end
+  end
 end
 
 class Evaluation
